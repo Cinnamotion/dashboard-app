@@ -11,18 +11,11 @@ import {
 import { Button } from '@/app/ui/button';
 import { createInvoice } from '@/app/lib/actions';
 import { useFormState } from 'react-dom';
-import { useEffect } from 'react';
 
 export default function Form({ customers }: { customers: CustomerField[] }) {
 
   const initialState = { message: null, errors: {} }
   const [state, dispatch] = useFormState(createInvoice, initialState);
-
-  console.log("State", state);
-
-  // useEffect(() => {
-  //   console.log("State", state);
-  // }, [state]);
 
   return (
     <form action={dispatch}>

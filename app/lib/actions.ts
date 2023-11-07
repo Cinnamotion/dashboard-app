@@ -4,18 +4,31 @@ import { z } from 'zod'
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { signIn } from '@/auth';
+
+export async function authenticate(prevState: string | undefined, formData: FormData) {
+
+	try {
+		await signIn('credentials', Object.fromEntries(formData))
+	} catch (error) {
+		if ((error as Error).message.includes('CredentialSignin')) {
+			return 'CredentialSignin'
+		}
+		throw error
+	}
+}
 
 const InvoiceSchema = z.object({
 	id: z.string(),
 	// below message for invalid type error
-	customerId: z.string({ invalid_type_error: 'Please select a customer.' })
-		// below messages for specific errors, they all show if the condition is met
-		.refine(value => value.length < 3, {
-			message: 'Customer ID should have more than 3 characters.',
-		})
-		.refine(value => value.length < 5, {
-			message: 'Customer ID should have more than 5 characters.',
-		}),
+	customerId: z.string({ invalid_type_error: 'Please select a customer/Invalid type.' }),
+	// below messages for specific errors, they all show if the condition is met
+	// .refine(value => value.length < 3, {
+	// 	message: 'Customer ID should have less than 3 characters.',
+	// })
+	// .refine(value => value.length < 5, {
+	// 	message: 'Customer ID should have less than 5 characters.',
+	// }),
 	amount: z.coerce
 		.number()
 		.gt(0, { message: 'Please enter an amount greater than $0.' }),
@@ -74,15 +87,22 @@ export async function createInvoice(prevState: State, formData: FormData) {
 	redirect('/dashboard/invoices');
 }
 
-export async function updateInvoice(id: string, formData: FormData) {
+export async function updateInvoice(id: string, prevState: State, formData: FormData) {
 
-	const { customerId, amount, status } = UpdateInvoice.parse({
-		id,
+	const validatedFields = UpdateInvoice.safeParse({
 		customerId: formData.get('customerId'),
 		amount: formData.get('amount'),
 		status: formData.get('status'),
 	});
 
+	if (!validatedFields.success) {
+		return {
+			errors: validatedFields.error.flatten().fieldErrors,
+			message: 'Missing Fields. Failed to Update/Edit Invoice.',
+		}
+	}
+
+	const { customerId, amount, status } = validatedFields.data;
 	const amountInCents = amount * 100;
 
 	try {
