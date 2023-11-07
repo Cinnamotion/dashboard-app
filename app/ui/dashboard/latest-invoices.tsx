@@ -29,7 +29,7 @@ export default async function LatestInvoices() {
                 )}
               >
                 <div className="flex items-center">
-                  <Image
+                  <img
                     src={`https://dashboard-app-drab-seven.vercel.app${invoice.image_url}`}
                     alt={`${invoice.name}'s profile picture`}
                     className="mr-4 rounded-full"
