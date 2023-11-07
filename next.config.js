@@ -4,7 +4,7 @@ const nextConfig = {
 		remotePatterns: [
 			{
 				protocol: 'https',
-				hostname: 'dashboard-app-drab-seven.vercel.app',
+				hostname: 'dashboard-app-drab-seven.vercel.app**',
 			}
 		]
 	}
